@@ -1,6 +1,6 @@
--r requirements.txt
-
-pytest
-pytest-cov
-bandit
-pip-audit
+﻿-r requirements.txt
+pytest>=8,<10
+pytest-cov>=5,<8
+ruff>=0.9,<1
+bandit>=1.8,<2
+pip-audit>=2.7,<3

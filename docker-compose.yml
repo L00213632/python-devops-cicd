@@ -1,0 +1,9 @@
+﻿services:
+  python-devops-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: python-devops-app
+    ports:
+      - "5001:5000"
+    restart: unless-stopped
