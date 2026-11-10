@@ -18,13 +18,17 @@ permissions:
 jobs:
 
   build-test:
-
     name: Build and Unit Testing
-
     runs-on: ubuntu-latest
 
-    steps:
+    env:
+      SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
+      SMTP_PORT: ${{ secrets.SMTP_PORT }}
+      SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+      SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+      NOTIFICATION_EMAIL: ${{ secrets.NOTIFICATION_EMAIL }}
 
+    steps:
       - name: Checkout source code
         uses: actions/checkout@v4
 
@@ -44,16 +48,16 @@ jobs:
           echo "Python build completed"
 
       - name: Notify build outcome
-        if: always()
+        if: always() && env.SMTP_SERVER != '' && env.SMTP_PORT != '' && env.SMTP_USERNAME != '' && env.SMTP_PASSWORD != '' && env.NOTIFICATION_EMAIL != ''
         uses: dawidd6/action-send-mail@v4
         with:
-          server_address: ${{ secrets.SMTP_SERVER }}
-          server_port: ${{ secrets.SMTP_PORT }}
-          username: ${{ secrets.SMTP_USERNAME }}
-          password: ${{ secrets.SMTP_PASSWORD }}
+          server_address: ${{ env.SMTP_SERVER }}
+          server_port: ${{ env.SMTP_PORT }}
+          username: ${{ env.SMTP_USERNAME }}
+          password: ${{ env.SMTP_PASSWORD }}
           subject: "Python CI-CD: Build outcome"
-          to: ${{ secrets.NOTIFICATION_EMAIL }}
-          from: ${{ secrets.SMTP_USERNAME }}
+          to: ${{ env.NOTIFICATION_EMAIL }}
+          from: ${{ env.SMTP_USERNAME }}
           body: |
             Build status: ${{ job.status }}
             Repository: ${{ github.repository }}
@@ -64,31 +68,27 @@ jobs:
           python -m pytest -v --cov=app --cov-report=term
 
       - name: Notify test outcome
-        if: always()
+        if: always() && env.SMTP_SERVER != '' && env.SMTP_PORT != '' && env.SMTP_USERNAME != '' && env.SMTP_PASSWORD != '' && env.NOTIFICATION_EMAIL != ''
         uses: dawidd6/action-send-mail@v4
         with:
-          server_address: ${{ secrets.SMTP_SERVER }}
-          server_port: ${{ secrets.SMTP_PORT }}
-          username: ${{ secrets.SMTP_USERNAME }}
-          password: ${{ secrets.SMTP_PASSWORD }}
+          server_address: ${{ env.SMTP_SERVER }}
+          server_port: ${{ env.SMTP_PORT }}
+          username: ${{ env.SMTP_USERNAME }}
+          password: ${{ env.SMTP_PASSWORD }}
           subject: "Python CI-CD: Unit test outcome"
-          to: ${{ secrets.NOTIFICATION_EMAIL }}
-          from: ${{ secrets.SMTP_USERNAME }}
+          to: ${{ env.NOTIFICATION_EMAIL }}
+          from: ${{ env.SMTP_USERNAME }}
           body: |
             Test job status: ${{ job.status }}
             Repository: ${{ github.repository }}
             Commit: ${{ github.sha }}
 
   security:
-
     name: Static Analysis and Security
-
     needs: build-test
-
     runs-on: ubuntu-latest
 
     steps:
-
       - name: Checkout source code
         uses: actions/checkout@v4
 
@@ -110,15 +110,11 @@ jobs:
           pip-audit -r requirements.txt
 
   container:
-
     name: Docker Build and Security Scan
-
     needs: security
-
     runs-on: ubuntu-latest
 
     steps:
-
       - name: Checkout source code
         uses: actions/checkout@v4
 
@@ -151,17 +147,12 @@ jobs:
           docker push ghcr.io/${{ github.repository }}:latest
 
   deploy:
-
     name: Deploy to AWS EC2
-
     needs: container
-
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-
     runs-on: ubuntu-latest
 
     steps:
-
       - name: Deploy application to EC2
         uses: appleboy/ssh-action@v1.2.0
         env:
@@ -194,7 +185,6 @@ jobs:
             docker ps
 
   notification:
-
     name: Final Pipeline Notification
 
     needs:
@@ -204,21 +194,27 @@ jobs:
       - deploy
 
     if: always()
-
     runs-on: ubuntu-latest
 
-    steps:
+    env:
+      SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
+      SMTP_PORT: ${{ secrets.SMTP_PORT }}
+      SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+      SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+      NOTIFICATION_EMAIL: ${{ secrets.NOTIFICATION_EMAIL }}
 
+    steps:
       - name: Send final pipeline notification
+        if: env.SMTP_SERVER != '' && env.SMTP_PORT != '' && env.SMTP_USERNAME != '' && env.SMTP_PASSWORD != '' && env.NOTIFICATION_EMAIL != ''
         uses: dawidd6/action-send-mail@v4
         with:
-          server_address: ${{ secrets.SMTP_SERVER }}
-          server_port: ${{ secrets.SMTP_PORT }}
-          username: ${{ secrets.SMTP_USERNAME }}
-          password: ${{ secrets.SMTP_PASSWORD }}
+          server_address: ${{ env.SMTP_SERVER }}
+          server_port: ${{ env.SMTP_PORT }}
+          username: ${{ env.SMTP_USERNAME }}
+          password: ${{ env.SMTP_PASSWORD }}
           subject: "Python CI-CD: Final pipeline outcome"
-          to: ${{ secrets.NOTIFICATION_EMAIL }}
-          from: ${{ secrets.SMTP_USERNAME }}
+          to: ${{ env.NOTIFICATION_EMAIL }}
+          from: ${{ env.SMTP_USERNAME }}
           body: |
             Python CI-CD pipeline execution completed.
 
