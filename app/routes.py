@@ -1,5 +1,6 @@
 
-from flask import Blueprint, render_template, request, redirect, url_for, jsonify
+from flask import Blueprint, jsonify, redirect, render_template, request, url_for
+
 from app.database import db
 from app.models import Task
 
