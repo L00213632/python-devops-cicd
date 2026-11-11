@@ -111,16 +111,54 @@ pipeline {
                 '''
             }
         }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                bat '''
+                    @echo off
+
+                    kubectl set image deployment/python-devops-app python-devops-app=%IMAGE_REPO%:%GIT_COMMIT%
+                    if errorlevel 1 exit /b 1
+
+                    kubectl rollout status deployment/python-devops-app --timeout=180s
+                    if errorlevel 1 exit /b 1
+                '''
+            }
+        }
+
+        stage('Verify Kubernetes Deployment') {
+            steps {
+                bat '''
+                    @echo off
+
+                    echo Checking Kubernetes deployment...
+                    kubectl get deployment python-devops-app
+                    if errorlevel 1 exit /b 1
+
+                    echo Checking Kubernetes pods...
+                    kubectl get pods -l app=python-devops-app
+                    if errorlevel 1 exit /b 1
+
+                    echo Checking deployed application health...
+                    kubectl exec deployment/python-devops-app -- python -c "import urllib.request; print(urllib.request.urlopen('http://127.0.0.1:5000/health').read().decode())"
+                    if errorlevel 1 exit /b 1
+                '''
+            }
+        }
     }
 
     post {
         success {
             echo 'CI/CD pipeline completed successfully.'
+            echo 'Automated tests passed.'
+            echo 'Code quality checks passed.'
+            echo 'Security scans passed.'
             echo 'Docker image published to GitHub Container Registry.'
+            echo 'Local Docker deployment verified.'
+            echo 'Kubernetes deployment and health verification completed.'
             echo 'Application: http://localhost:5002'
             echo 'Health: http://localhost:5002/health'
             echo 'Metrics: http://localhost:5002/metrics'
-            echo 'Kubernetes access verified successfully.'
         }
 
         failure {
