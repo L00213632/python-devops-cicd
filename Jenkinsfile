@@ -4,14 +4,24 @@ pipeline {
 
     environment {
         PYTHON = 'C:\\Users\\Payal Suryakar\\AppData\\Local\\Programs\\Python\\Python313\\python.exe'
+
         IMAGE_NAME = 'python-devops-cicd:latest'
         CONTAINER_NAME = 'python-devops-app-ci'
+
+        KUBECONFIG = 'C:\\Windows\\System32\\config\\systemprofile\\.kube\\config'
     }
 
     stages {
+
         stage('Checkout') {
             steps {
                 checkout scm
+            }
+        }
+
+        stage('Kubernetes Access Check') {
+            steps {
+                bat 'kubectl get nodes'
             }
         }
 
@@ -81,7 +91,9 @@ pipeline {
             echo 'Application: http://localhost:5002'
             echo 'Health: http://localhost:5002/health'
             echo 'Metrics: http://localhost:5002/metrics'
+            echo 'Kubernetes access check completed successfully.'
         }
+
         failure {
             echo 'Pipeline failed. Check the failed stage in Jenkins Console Output.'
         }
