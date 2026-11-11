@@ -4,15 +4,13 @@ pipeline {
 
     environment {
         PYTHON = 'C:\\Users\\Payal Suryakar\\AppData\\Local\\Programs\\Python\\Python313\\python.exe'
-
         IMAGE_NAME = 'python-devops-cicd:latest'
+        IMAGE_REPO = 'ghcr.io/l00213632/python-devops-cicd'
         CONTAINER_NAME = 'python-devops-app-ci'
-
         KUBECONFIG = 'C:\\Users\\Payal Suryakar\\.kube\\config'
     }
 
     stages {
-
         stage('Checkout') {
             steps {
                 checkout scm
@@ -64,7 +62,7 @@ pipeline {
             }
         }
 
-        stage('Deploy Container') {
+        stage('Deploy Local Container') {
             steps {
                 bat '''
                     docker rm -f %CONTAINER_NAME% 2>NUL
@@ -73,14 +71,65 @@ pipeline {
             }
         }
 
-        stage('Verify Deployment') {
+        stage('Verify Local Deployment') {
             steps {
                 bat '''
-                    for /L %%i in (1,1,20) do (
-                        curl.exe -fsS http://localhost:5002/health && exit /b 0
-                        timeout /t 3 /nobreak >NUL
-                    )
-                    exit /b 1
+                    @echo off
+                    powershell -NoProfile -Command "for ($i=0; $i -lt 20; $i++) { try { Invoke-RestMethod http://localhost:5002/health -TimeoutSec 3; exit 0 } catch { Start-Sleep -Seconds 3 } }; exit 1"
+                '''
+            }
+        }
+
+        stage('Publish Docker Image to GHCR') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'ghcr-credentials',
+                    usernameVariable: 'GHCR_USER',
+                    passwordVariable: 'GHCR_TOKEN'
+                )]) {
+                    bat '''
+                        @echo off
+                        powershell -NoProfile -Command "$env:GHCR_TOKEN | docker login ghcr.io --username $env:GHCR_USER --password-stdin"
+                        if errorlevel 1 exit /b 1
+
+                        docker tag %IMAGE_NAME% %IMAGE_REPO%:%GIT_COMMIT%
+                        if errorlevel 1 exit /b 1
+
+                        docker tag %IMAGE_NAME% %IMAGE_REPO%:latest
+                        if errorlevel 1 exit /b 1
+
+                        docker push %IMAGE_REPO%:%GIT_COMMIT%
+                        if errorlevel 1 exit /b 1
+
+                        docker push %IMAGE_REPO%:latest
+                        if errorlevel 1 exit /b 1
+
+                        docker logout ghcr.io
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                bat '''
+                    kubectl set image deployment/python-devops-app python-devops-app=%IMAGE_REPO%:%GIT_COMMIT%
+                    if errorlevel 1 exit /b 1
+
+                    kubectl rollout status deployment/python-devops-app --timeout=180s
+                    if errorlevel 1 exit /b 1
+                '''
+            }
+        }
+
+        stage('Verify Kubernetes Deployment') {
+            steps {
+                bat '''
+                    kubectl get deployments
+                    kubectl get pods -l app=python-devops-app
+                    kubectl get services
+
+                    kubectl exec deployment/python-devops-app -- python -c "import urllib.request; print(urllib.request.urlopen('http://127.0.0.1:5000/health').read().decode())"
                 '''
             }
         }
@@ -89,10 +138,10 @@ pipeline {
     post {
         success {
             echo 'CI/CD pipeline completed successfully.'
+            echo 'Docker image published to GHCR.'
+            echo 'Kubernetes deployment updated successfully.'
             echo 'Application: http://localhost:5002'
-            echo 'Health: http://localhost:5002/health'
-            echo 'Metrics: http://localhost:5002/metrics'
-            echo 'Kubernetes access verified successfully.'
+            echo 'Kubernetes health can be checked using kubectl exec.'
         }
 
         failure {
