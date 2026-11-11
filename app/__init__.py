@@ -10,4 +10,4 @@ def create_app():
     PrometheusMetrics(app)
     app.register_blueprint(main)
 
-    return app
+    return app 
