@@ -8,7 +8,7 @@ pipeline {
         IMAGE_NAME = 'python-devops-cicd:latest'
         CONTAINER_NAME = 'python-devops-app-ci'
 
-        KUBECONFIG = 'C:\\Windows\\System32\\config\\systemprofile\\.kube\\config'
+        KUBECONFIG = 'C:\\Users\\Payal Suryakar\\.kube\\config'
     }
 
     stages {
@@ -21,6 +21,7 @@ pipeline {
 
         stage('Kubernetes Access Check') {
             steps {
+                bat 'kubectl config current-context'
                 bat 'kubectl get nodes'
             }
         }
@@ -91,7 +92,7 @@ pipeline {
             echo 'Application: http://localhost:5002'
             echo 'Health: http://localhost:5002/health'
             echo 'Metrics: http://localhost:5002/metrics'
-            echo 'Kubernetes access check completed successfully.'
+            echo 'Kubernetes access verified successfully.'
         }
 
         failure {
