@@ -52,8 +52,11 @@ pipeline {
 
         stage('Security Scan') {
             steps {
+                echo 'Running Bandit security scan...'
                 bat '.venv\\Scripts\\bandit.exe -r app run.py -ll'
-                bat '.venv\\Scripts\\pip-audit.exe -r requirements.txt'
+
+                echo 'Running pip-audit against installed virtual environment packages...'
+                bat '.venv\\Scripts\\python.exe -m pip_audit --local'
             }
         }
 
@@ -97,6 +100,7 @@ pipeline {
         stage('Deploy Container') {
             steps {
                 bat '''
+                    @echo off
                     docker rm -f %CONTAINER_NAME% 2>NUL
                     docker run -d --name %CONTAINER_NAME% -p 5002:5000 --restart unless-stopped %IMAGE_NAME%
                 '''
