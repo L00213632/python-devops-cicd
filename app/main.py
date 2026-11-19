@@ -1,42 +1,16 @@
-﻿
-
-from flask import Blueprint, jsonify, render_template
-from datetime import datetime, timezone
+﻿from flask import Blueprint, jsonify
 
 main = Blueprint("main", __name__)
 
-START_TIME = datetime.now(timezone.utc)
-
-
-@main.route("/")
+@main.route("/", methods=["GET"])
 def home():
-    return render_template("index.html")
-
-
-@main.route("/health")
-def health():
     return jsonify({
-        "status": "healthy",
-        "message": "Python DevOps application is running",
-        "application": "DevOps Control Centre",
-        "timestamp": datetime.now(timezone.utc).isoformat()
+        "message": "DevOps mini-pipeline application is running",
+        "status": "success"
     }), 200
 
-
-@main.route("/api/dashboard")
-def dashboard():
-    uptime = datetime.now(timezone.utc) - START_TIME
-
+@main.route("/health", methods=["GET"])
+def health():
     return jsonify({
-        "status": "healthy",
-        "uptime_seconds": int(uptime.total_seconds()),
-        "application": "Python DevOps Control Centre",
-        "pipeline": [
-            "GitHub",
-            "Jenkins",
-            "Testing",
-            "Docker",
-            "Deployment",
-            "Monitoring"
-        ]
+        "status": "healthy"
     }), 200
