@@ -2,284 +2,165 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Python DevOps CI/CD application dashboard">
-    <title>Python DevOps | CI/CD Dashboard</title>
-
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: Arial, sans-serif;
-            background: #f3f6fb;
-            color: #1e293b;
-            line-height: 1.6;
-        }
-
-        header {
-            background: #172554;
-            color: white;
-            padding: 22px 8%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-
-        header h1 {
-            font-size: 23px;
-        }
-
-        header span {
-            color: #93c5fd;
-            font-size: 14px;
-        }
-
-        .hero {
-            padding: 65px 8%;
-            background: linear-gradient(120deg, #1e3a8a, #2563eb);
-            color: white;
-        }
-
-        .hero h2 {
-            font-size: clamp(30px, 5vw, 46px);
-            margin-bottom: 15px;
-        }
-
-        .hero p {
-            max-width: 650px;
-            font-size: 17px;
-            color: #dbeafe;
-        }
-
-        .container {
-            padding: 40px 8%;
-        }
-
-        .section-title {
-            margin-bottom: 22px;
-            font-size: 25px;
-        }
-
-        .cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-            gap: 20px;
-        }
-
-        .card {
-            background: white;
-            padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
-            border: 1px solid #e2e8f0;
-        }
-
-        .card h3 {
-            margin-bottom: 10px;
-            color: #1d4ed8;
-        }
-
-        .card p {
-            color: #64748b;
-            font-size: 14px;
-        }
-
-        .status {
-            display: inline-block;
-            background: #dcfce7;
-            color: #166534;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-            margin-top: 12px;
-        }
-
-        .links {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-top: 20px;
-        }
-
-        .links a {
-            background: #2563eb;
-            color: white;
-            text-decoration: none;
-            padding: 11px 17px;
-            border-radius: 7px;
-            font-size: 14px;
-        }
-
-        .links a:hover {
-            background: #1e40af;
-        }
-
-        .health {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            margin-top: 30px;
-            border: 1px solid #e2e8f0;
-        }
-
-        #health-status {
-            font-weight: bold;
-            color: #64748b;
-            margin-top: 10px;
-        }
-
-        footer {
-            background: #172554;
-            color: #cbd5e1;
-            text-align: center;
-            padding: 22px;
-            font-size: 13px;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DevOps Control Centre</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#0b1120;color:#e5e7eb}
+.layout{display:flex;min-height:100vh}
+.sidebar{width:230px;background:#111827;padding:28px 18px;border-right:1px solid #263247}
+.logo{font-size:20px;font-weight:bold;color:#60a5fa;margin-bottom:38px}
+.nav{padding:13px;margin:8px 0;border-radius:9px;color:#9ca3af}
+.nav.active{background:#1e3a5f;color:#60a5fa}
+main{flex:1;padding:32px;min-width:0}
+.top{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:30px;flex-wrap:wrap}
+h1{font-size:27px;margin-bottom:8px}
+.muted{color:#94a3b8;font-size:13px}
+.online{background:#123d31;color:#6ee7b7;padding:10px 15px;border-radius:20px;font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:17px;margin-bottom:25px}
+.card,.panel{background:#151f31;border:1px solid #273449;border-radius:14px;padding:22px}
+.card .icon{font-size:25px;margin-bottom:18px}
+.card h2{font-size:29px;margin-bottom:7px}
+.blue{color:#60a5fa}.green{color:#34d399}.orange{color:#fbbf24}.pink{color:#f472b6}
+.section{margin:28px 0 15px;font-size:18px}
+.columns{display:grid;grid-template-columns:1.5fr 1fr;gap:18px}
+.panel h3{font-size:16px;margin-bottom:20px}
+.pipeline{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.stage{background:#1e293b;border:1px solid #334155;padding:18px 10px;text-align:center;border-radius:10px}
+.stage span{display:block;font-size:25px;margin-bottom:9px}
+.stage small{color:#94a3b8}
+.activity{list-style:none}
+.activity li{padding:13px 0;border-bottom:1px solid #293548;color:#cbd5e1;font-size:13px}
+.dot{color:#34d399;margin-right:9px}
+.tools{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}
+.tool{background:#1e293b;padding:17px;border-radius:10px;border:1px solid #334155}
+.tool b{display:block;margin-bottom:6px}
+button{background:#2563eb;color:white;border:0;padding:11px 17px;border-radius:8px;cursor:pointer}
+button:hover{background:#1d4ed8}
+#health{margin-top:15px;color:#34d399;font-size:14px}
+footer{text-align:center;color:#64748b;padding:30px;font-size:12px}
+@media(max-width:1000px){.grid{grid-template-columns:repeat(2,1fr)}.columns{grid-template-columns:1fr}}
+@media(max-width:650px){.sidebar{display:none}main{padding:18px}.grid{grid-template-columns:1fr 1fr}.pipeline{grid-template-columns:1fr 1fr}.tools{grid-template-columns:1fr}}
+</style>
 </head>
-
 <body>
+<div class="layout">
+<aside class="sidebar">
+<div class="logo">⚡ DEVOPS HUB</div>
+<div class="nav active">▦ Dashboard</div>
+<div class="nav">⇄ CI/CD Pipeline</div>
+<div class="nav">◈ Deployments</div>
+<div class="nav">▣ Containers</div>
+<div class="nav">◉ Monitoring</div>
+<div class="nav">⚙ Settings</div>
+</aside>
 
-<header>
-    <h1>Python DevOps Project</h1>
-    <span>Automated CI/CD Demonstration</span>
+<main>
+<header class="top">
+<div>
+<h1>DevOps Control Centre</h1>
+<p class="muted">Python application delivery and monitoring overview</p>
+</div>
+<div class="online">● APPLICATION ONLINE</div>
 </header>
 
-<section class="hero">
-    <h2>Welcome to My DevOps Dashboard</h2>
-    <p>
-        A Python application demonstrating automated software delivery
-        using GitHub, Jenkins, Docker, Kubernetes, Prometheus and Grafana.
-    </p>
+<section class="grid">
+<div class="card"><div class="icon">🐙</div><h2 class="blue">GitHub</h2><p class="muted">Source code management</p></div>
+<div class="card"><div class="icon">⚙️</div><h2 class="green">Jenkins</h2><p class="muted">Build automation</p></div>
+<div class="card"><div class="icon">🐳</div><h2 class="orange">Docker</h2><p class="muted">Container deployment</p></div>
+<div class="card"><div class="icon">📊</div><h2 class="pink">Grafana</h2><p class="muted">Visual monitoring</p></div>
 </section>
 
-<main class="container">
+<h2 class="section">CI/CD Delivery Pipeline</h2>
+<section class="panel">
+<div class="pipeline">
+<div class="stage"><span>🐙</span><b>GitHub</b><small>Code commit</small></div>
+<div class="stage"><span>⚙️</span><b>Jenkins</b><small>Build process</small></div>
+<div class="stage"><span>🧪</span><b>Testing</b><small>Automated tests</small></div>
+<div class="stage"><span>🐳</span><b>Docker</b><small>Build image</small></div>
+<div class="stage"><span>🚀</span><b>Deployment</b><small>Run application</small></div>
+<div class="stage"><span>📈</span><b>Monitoring</b><small>Metrics</small></div>
+</div>
+</section>
 
-    <h2 class="section-title">DevOps Technology Stack</h2>
+<h2 class="section">Application Insights</h2>
+<section class="columns">
+<div class="panel">
+<h3>Pipeline Technology Overview</h3>
+<canvas id="pipelineChart"></canvas>
+<p class="muted" style="margin-top:12px">Illustrative technology overview, not actual build statistics.</p>
+</div>
+<div class="panel">
+<h3>Application Health</h3>
+<div style="font-size:48px;margin:15px 0">💚</div>
+<h2 class="green" id="healthTitle">Checking...</h2>
+<p class="muted" id="healthMessage">Connecting to Flask backend</p>
+<button style="margin-top:20px" onclick="checkHealth()">Refresh health</button>
+<p id="health"></p>
+</div>
+</section>
 
-    <section class="cards">
+<h2 class="section">Technology Stack</h2>
+<section class="tools">
+<div class="tool"><b>🐍 Python Flask</b><small class="muted">Application backend</small></div>
+<div class="tool"><b>🔧 Jenkins</b><small class="muted">Continuous integration</small></div>
+<div class="tool"><b>🐳 Docker</b><small class="muted">Containerisation</small></div>
+<div class="tool"><b>☸ Kubernetes</b><small class="muted">Container orchestration</small></div>
+<div class="tool"><b>📡 Prometheus</b><small class="muted">Metrics collection</small></div>
+<div class="tool"><b>📊 Grafana</b><small class="muted">Monitoring dashboards</small></div>
+</section>
 
-        <article class="card">
-            <h3>GitHub</h3>
-            <p>Source code management and version control.</p>
-            <span class="status">Source Control</span>
-        </article>
+<h2 class="section">Monitoring & Application Links</h2>
+<section class="panel">
+<div class="tools">
+<div class="tool"><b>Prometheus</b><a href="http://localhost:9090" target="_blank">Open metrics ↗</a></div>
+<div class="tool"><b>Grafana</b><a href="http://localhost:3000" target="_blank">Open dashboard ↗</a></div>
+<div class="tool"><b>Flask Metrics</b><a href="/metrics" target="_blank">View metrics ↗</a></div>
+</div>
+</section>
 
-        <article class="card">
-            <h3>Jenkins</h3>
-            <p>Automated pipeline execution, testing and delivery.</p>
-            <span class="status">CI/CD</span>
-        </article>
-
-        <article class="card">
-            <h3>Docker</h3>
-            <p>Application packaging and containerisation.</p>
-            <span class="status">Containerisation</span>
-        </article>
-
-        <article class="card">
-            <h3>Kubernetes</h3>
-            <p>Container orchestration and application deployment.</p>
-            <span class="status">Orchestration</span>
-        </article>
-
-        <article class="card">
-            <h3>Prometheus</h3>
-            <p>Collection and querying of application metrics.</p>
-            <span class="status">Monitoring</span>
-        </article>
-
-        <article class="card">
-            <h3>Grafana</h3>
-            <p>Visual monitoring dashboards and performance insights.</p>
-            <span class="status">Visualisation</span>
-        </article>
-
-    </section>
-
-    <section class="health">
-        <h2>Application Health Check</h2>
-        <p>Check whether the Python backend is responding.</p>
-
-        <p id="health-status">Checking application status...</p>
-
-        <button onclick="checkHealth()" style="
-            margin-top:15px;
-            padding:11px 18px;
-            border:0;
-            border-radius:7px;
-            background:#2563eb;
-            color:white;
-            cursor:pointer;">
-            Check Health
-        </button>
-    </section>
-
-    <section class="health">
-        <h2>Monitoring Tools</h2>
-        <p>Open the monitoring interfaces when they are running.</p>
-
-        <div class="links">
-            <a href="http://localhost:9090" target="_blank" rel="noopener">
-                Prometheus
-            </a>
-
-            <a href="http://localhost:3000" target="_blank" rel="noopener">
-                Grafana
-            </a>
-
-            <a href="/health" target="_blank">
-                Health API
-            </a>
-
-            <a href="/metrics" target="_blank">
-                Application Metrics
-            </a>
-        </div>
-    </section>
-
+<footer>Python DevOps CI/CD Project | GitHub • Jenkins • Docker • Prometheus • Grafana</footer>
 </main>
-
-<footer>
-    Python DevOps CI/CD Project | GitHub to Jenkins to Docker
-    to Kubernetes | Prometheus and Grafana
-</footer>
+</div>
 
 <script>
-    async function checkHealth() {
-        const status = document.getElementById("health-status");
-        status.textContent = "Checking...";
+new Chart(document.getElementById('pipelineChart'),{
+ type:'doughnut',
+ data:{
+  labels:['Source Control','Build Automation','Testing','Deployment','Monitoring'],
+  datasets:[{
+   data:[20,20,20,20,20],
+   backgroundColor:['#60a5fa','#34d399','#fbbf24','#f472b6','#a78bfa'],
+   borderWidth:0
+  }]
+ },
+ options:{plugins:{legend:{position:'bottom',labels:{color:'#cbd5e1',padding:15}}}}
+});
 
-        try {
-            const response = await fetch("/health");
-
-            if (!response.ok) {
-                throw new Error("Health check failed");
-            }
-
-            const data = await response.json();
-
-            status.textContent =
-                "Application is healthy: " + JSON.stringify(data);
-            status.style.color = "#15803d";
-
-        } catch (error) {
-            status.textContent =
-                "Unable to connect to the application health endpoint.";
-            status.style.color = "#dc2626";
-        }
-    }
-
-    checkHealth();
+async function checkHealth(){
+ const title=document.getElementById('healthTitle');
+ const message=document.getElementById('healthMessage');
+ const result=document.getElementById('health');
+ title.textContent='Checking...';
+ try{
+  const response=await fetch('/health');
+  if(!response.ok) throw new Error('Health check failed');
+  const data=await response.json();
+  title.textContent='SYSTEM HEALTHY';
+  title.style.color='#34d399';
+  message.textContent=data.message;
+  result.textContent='Last checked: '+new Date().toLocaleTimeString();
+ }catch(error){
+  title.textContent='SYSTEM OFFLINE';
+  title.style.color='#f87171';
+  message.textContent='Unable to reach Flask backend';
+  result.textContent=error.message;
+ }
+}
+checkHealth();
+setInterval(checkHealth,15000);
 </script>
-
 </body>
 </html>
