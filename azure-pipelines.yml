@@ -1,0 +1,77 @@
+
+# Azure DevOps CI/CD Pipeline
+# Python application build and test
+
+trigger:
+  branches:
+    include:
+      - main
+      - feature/*
+
+pr:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  pythonVersion: '3.12'
+
+stages:
+
+# STAGE 1: BUILD
+- stage: Build
+  displayName: 'Build Python Application'
+  jobs:
+  - job: BuildJob
+    displayName: 'Install Dependencies'
+    steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '$(pythonVersion)'
+      displayName: 'Set Python Version'
+
+    - script: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+      displayName: 'Install Python Dependencies'
+
+    - script: |
+        python -m compileall .
+      displayName: 'Compile Python Files'
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)'
+        ArtifactName: 'python-application'
+        publishLocation: 'Container'
+      displayName: 'Publish Build Artifact'
+
+# STAGE 2: TEST
+- stage: Test
+  displayName: 'Run Automated Tests'
+  dependsOn: Build
+  condition: succeeded()
+  jobs:
+  - job: TestJob
+    displayName: 'Execute Pytest'
+    steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '$(pythonVersion)'
+
+    - script: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest
+      displayName: 'Install Testing Dependencies'
+
+    - script: |
+        pytest -v
+      displayName: 'Run Unit Tests'
+
+# STAGE 3: DEPLOYMENT
+# Deployment will be configured after creating
+# the Azure App Service and service connection.
